@@ -7,7 +7,6 @@ const WEBHOOK_URL = 'https://n8n.aivdele.com/webhook/ai-chat';
 export const ChatWidget: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   
-  // НОВОЕ: Улучшенное приветственное сообщение
   const [messages, setMessages] = useState<{sender: 'bot' | 'user', text: string}[]>([
     { 
       sender: 'bot', 
@@ -18,9 +17,6 @@ export const ChatWidget: React.FC = () => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  
-  // НОВОЕ: Счётчик консультаций
-  const [consultationsToday, setConsultationsToday] = useState(47);
   
   // Session ID management
   const [sessionId] = useState(() => {
@@ -33,7 +29,7 @@ export const ChatWidget: React.FC = () => {
 
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
 
-  // НОВОЕ: Слушаем событие открытия чата из Hero
+  // Слушаем событие открытия чата из Hero
   useEffect(() => {
     const handleOpenChat = () => {
       setIsOpen(true);
@@ -43,7 +39,7 @@ export const ChatWidget: React.FC = () => {
     return () => window.removeEventListener('openChat', handleOpenChat);
   }, []);
 
-  // ИЗМЕНЕНО: Увеличено время автооткрытия с 5 до 15 секунд
+  // Автооткрытие через 15 секунд
   useEffect(() => {
     if (!isMobile) {
       const t = setTimeout(() => setIsOpen(true), 15000);
@@ -81,9 +77,6 @@ export const ChatWidget: React.FC = () => {
       const aiText = data.text || data.output || data.message || "Извините, сейчас я не могу ответить. Попробуйте позже.";
       
       setMessages(prev => [...prev, { sender: 'bot', text: aiText }]);
-      
-      // НОВОЕ: Увеличиваем счётчик при успешном ответе
-      setConsultationsToday(prev => prev + 1);
     } catch (error) {
       console.error('Chat Error:', error);
       setMessages(prev => [...prev, { sender: 'bot', text: "Произошла ошибка соединения. Пожалуйста, проверьте интернет." }]);
@@ -95,23 +88,6 @@ export const ChatWidget: React.FC = () => {
   return (
     <>
       <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
-        
-        {/* НОВОЕ: Счётчик активности */}
-        {!isOpen && (
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="bg-white rounded-lg shadow-lg px-4 py-2 border border-gray-200 text-sm"
-          >
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-              <span className="text-gray-700 font-medium">ИИ-агент онлайн</span>
-            </div>
-            <div className="text-gray-500 text-xs mt-1">
-              Сегодня провёл <span className="font-bold text-brand-blue">{consultationsToday}</span> консультаций
-            </div>
-          </motion.div>
-        )}
         
         <AnimatePresence>
           {isOpen && (
