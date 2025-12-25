@@ -4,7 +4,11 @@ import { useModal } from '../../contexts/ModalContext';
 import { motion } from 'framer-motion';
 import { ArrowDown, CheckCircle, MessageCircle } from 'lucide-react';
 
-export const Hero: React.FC = () => {
+interface HeroProps {
+  onOpenChat?: () => void;
+}
+
+export const Hero: React.FC<HeroProps> = ({ onOpenChat }) => {
   const [messages, setMessages] = useState<{role: 'user' | 'ai', text: string}[]>([]);
   const { openModal } = useModal();
   
@@ -41,6 +45,12 @@ export const Hero: React.FC = () => {
     };
   }, []);
 
+  const handleTryChat = () => {
+    if (onOpenChat) {
+      onOpenChat();
+    }
+  };
+
   return (
     <section className="relative min-h-screen pt-24 pb-12 overflow-hidden bg-hero-gradient text-white flex items-center">
       <div className="container mx-auto px-4 md:px-6">
@@ -60,9 +70,19 @@ export const Hero: React.FC = () => {
               ИИ-продавец, который знает ваш бизнес лучше любого стажёра — и конвертирует заявки в продажи, пока вы спите.
             </p>
             
+            {/* НОВОЕ: Две кнопки вместо одной */}
             <div className="flex flex-col sm:flex-row gap-4">
               <Button onClick={() => openModal('hero_main')} variant="success" pulse className="text-lg">
                 → Купить агента за $197
+              </Button>
+              
+              {/* НОВАЯ КНОПКА */}
+              <Button 
+                onClick={handleTryChat} 
+                variant="outline" 
+                className="text-lg border-2 border-white text-white hover:bg-white hover:text-indigo-600 transition-colors"
+              >
+                💬 Попробовать агента прямо сейчас
               </Button>
             </div>
 
