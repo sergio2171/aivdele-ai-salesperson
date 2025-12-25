@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Layout } from './components/Layout';
 import { Hero } from './components/sections/Hero';
 import { Story } from './components/sections/Story';
@@ -37,21 +37,37 @@ const FinalCTA: React.FC = () => {
   );
 };
 
+// НОВОЕ: Wrapper для передачи функции открытия чата в Hero
+const AppContent: React.FC = () => {
+  const chatWidgetRef = useRef<{ openChat: () => void } | null>(null);
+  
+  const handleOpenChat = () => {
+    // Эта функция будет вызывать метод открытия чата в ChatWidget
+    // Для простоты - можно использовать событие или ref
+    const event = new CustomEvent('openChat');
+    window.dispatchEvent(event);
+  };
+  
+  return (
+    <Layout>
+      <Hero onOpenChat={handleOpenChat} />
+      <Story />
+      <Solution />
+      <Offer />
+      <SocialProof />
+      <Urgency />
+      <FAQ />
+      <FinalCTA />
+      <ChatWidget ref={chatWidgetRef} />
+      <LeadModal />
+    </Layout>
+  );
+};
+
 function App() {
   return (
     <ModalProvider>
-      <Layout>
-        <Hero />
-        <Story />
-        <Solution />
-        <Offer />
-        <SocialProof />
-        <Urgency />
-        <FAQ />
-        <FinalCTA />
-        <ChatWidget />
-        <LeadModal />
-      </Layout>
+      <AppContent />
     </ModalProvider>
   );
 }

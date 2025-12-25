@@ -6,12 +6,21 @@ const WEBHOOK_URL = 'https://n8n.aivdele.com/webhook/ai-chat';
 
 export const ChatWidget: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
+  
+  // НОВОЕ: Улучшенное приветственное сообщение
   const [messages, setMessages] = useState<{sender: 'bot' | 'user', text: string}[]>([
-    { sender: 'bot', text: 'Здравствуйте! Я ИИ-консультант. Могу рассказать о тарифах или записать на демо. Чем помочь?' }
+    { 
+      sender: 'bot', 
+      text: 'Здравствуйте! Я тот самый ИИ-продавец, который работает в 3 ночи 😊\n\nМогу рассказать как я работаю, показать интеграции или записать вас на демо.\n\nИли задайте мне сложный вопрос — проверьте насколько я умён!'
+    }
   ]);
+  
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // НОВОЕ: Счётчик консультаций
+  const [consultationsToday, setConsultationsToday] = useState(47);
   
   // Session ID management
   const [sessionId] = useState(() => {
@@ -24,10 +33,20 @@ export const ChatWidget: React.FC = () => {
 
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
 
-  // Auto-open logic (only on desktop)
+  // НОВОЕ: Слушаем событие открытия чата из Hero
+  useEffect(() => {
+    const handleOpenChat = () => {
+      setIsOpen(true);
+    };
+    
+    window.addEventListener('openChat', handleOpenChat);
+    return () => window.removeEventListener('openChat', handleOpenChat);
+  }, []);
+
+  // ИЗМЕНЕНО: Увеличено время автооткрытия с 5 до 15 секунд
   useEffect(() => {
     if (!isMobile) {
-      const t = setTimeout(() => setIsOpen(true), 5000);
+      const t = setTimeout(() => setIsOpen(true), 15000);
       return () => clearTimeout(t);
     }
   }, [isMobile]);
@@ -59,11 +78,12 @@ export const ChatWidget: React.FC = () => {
 
       const data = await response.json();
       
-      // Assuming n8n returns { "text": "AI response" } or similar structure
-      // Adjust property access based on your specific n8n output node
       const aiText = data.text || data.output || data.message || "Извините, сейчас я не могу ответить. Попробуйте позже.";
       
       setMessages(prev => [...prev, { sender: 'bot', text: aiText }]);
+      
+      // НОВОЕ: Увеличиваем счётчик при успешном ответе
+      setConsultationsToday(prev => prev + 1);
     } catch (error) {
       console.error('Chat Error:', error);
       setMessages(prev => [...prev, { sender: 'bot', text: "Произошла ошибка соединения. Пожалуйста, проверьте интернет." }]);
@@ -74,7 +94,25 @@ export const ChatWidget: React.FC = () => {
 
   return (
     <>
-      <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
+      <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
+        
+        {/* НОВОЕ: Счётчик активности */}
+        {!isOpen && (
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="bg-white rounded-lg shadow-lg px-4 py-2 border border-gray-200 text-sm"
+          >
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+              <span className="text-gray-700 font-medium">ИИ-агент онлайн</span>
+            </div>
+            <div className="text-gray-500 text-xs mt-1">
+              Сегодня провёл <span className="font-bold text-brand-blue">{consultationsToday}</span> консультаций
+            </div>
+          </motion.div>
+        )}
+        
         <AnimatePresence>
           {isOpen && (
             <motion.div 
@@ -96,7 +134,7 @@ export const ChatWidget: React.FC = () => {
               <div className="flex-1 p-4 bg-gray-50 overflow-y-auto min-h-[300px] max-h-[400px] space-y-3">
                 {messages.map((m, i) => (
                   <div key={i} className={`flex ${m.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[85%] p-3 rounded-lg text-sm ${
+                    <div className={`max-w-[85%] p-3 rounded-lg text-sm whitespace-pre-line ${
                       m.sender === 'user' ? 'bg-brand-blue text-white rounded-br-none' : 'bg-white border border-gray-200 text-gray-800 rounded-bl-none'
                     }`}>
                       {m.text}
@@ -109,8 +147,7 @@ export const ChatWidget: React.FC = () => {
                       <Loader2 size={16} className="animate-spin" />
                     </div>
                   </div>
-                )}
-                <div ref={messagesEndRef} />
+                )}\n                <div ref={messagesEndRef} />
               </div>
 
               <div className="p-3 bg-white border-t border-gray-100 flex gap-2">
