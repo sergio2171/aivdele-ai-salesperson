@@ -147,7 +147,8 @@ export const ChatWidget: React.FC = () => {
                       <Loader2 size={16} className="animate-spin" />
                     </div>
                   </div>
-                )}\n                <div ref={messagesEndRef} />
+                )}
+                <div ref={messagesEndRef} />
               </div>
 
               <div className="p-3 bg-white border-t border-gray-100 flex gap-2">
